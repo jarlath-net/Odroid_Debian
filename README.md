@@ -10,12 +10,14 @@ Tested on debian x86  with microSD card or eMMC with microSD adapter
 
 
 Supported devices:
-ODROID-U3
+* ODROID-U3
 
 
 
 History
 
+v0.1:
+* Addes UUID for second partition
 
 20141124: initial version
 * Build script working fine for U3
