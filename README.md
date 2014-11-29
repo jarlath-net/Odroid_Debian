@@ -17,7 +17,7 @@ Supported devices:
 History
 
 v0.1:
-* Addes UUID for second partition
+* Added UUID for second partition
 
 20141124: initial version
 * Build script working fine for U3
