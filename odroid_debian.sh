@@ -79,6 +79,8 @@ function CreatePartitions()
     sudo mkfs.ext4 -L ROOTFS $SDCARD"2"
     sudo tune2fs -o journal_data_writeback $SDCARD"2"
     sudo tune2fs -O ^has_journal $SDCARD"2"
+    #set parition uuid for some kernel update scripts
+    sudo tune2fs $SDCARD"2" -U e139ce78-9841-40fe-8823-96a304a09859
     sudo e2fsck -f $SDCARD"2"
     sudo dosfslabel $SDCARD"1" BOOT
     sudo e2label $SDCARD"2" ROOTFS
