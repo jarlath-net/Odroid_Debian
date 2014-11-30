@@ -1,14 +1,30 @@
 ODROID Debian build script
 ==========================
+Author: Tomasz Gwozdz [Jarlath] http://www.jarlath.net
 
-http://www.jarlath.net/2014/11/skrypt-do-budowy-debiana-dla-odroid-u3/
+ This script is provided as-is, no warranty is provided or implied.
+ The author is NOT responsible for any damages or data loss that may occur
+ through the use of this script.  Always test, test, test before
+ rolling anything into a production environment.
 
-Create microSD debian bootable card for ODROID.
-Tested on debian x86  with microSD card or eMMC with microSD adapter
+ This script is free to use for both personal and business use, however,
+ it may not be sold or included as part of a package that is for sale.
+
+ A Service Provider may include this script as part of their service
+ offering/best practices provided they only charge for their time
+ to implement and support.
+
+ For distribution and updates go to: http://www.jarlath.net :
+ http://www.jarlath.net/2014/11/skrypt-do-budowy-debiana-dla-odroid-u3/
+Description
+-----------
+Script create microSD debian bootable card for ODROID development board.
+Tested on Debian x86 VM  with microSD card or eMMC with microSD adapter
 
 
 Supported devices:
-* ODROID-U3
+* ODROID-U2 [Not tested, but should work]
+* ODROID-U3 [OK]
 
 
 
@@ -17,7 +33,7 @@ http://forum.odroid.com/viewtopic.php?f=79&t=5513<br>
 https://doukki.net/doku.php?id=hard:arm:odroid:odroid-u3-debian
 
 History
-
+-------
 v0.1:
 * Added UUID for second partition
 
