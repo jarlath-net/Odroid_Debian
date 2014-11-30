@@ -13,7 +13,7 @@ Supported devices:
 
 
 Based on:
-http://forum.odroid.com/viewtopic.php?f=79&t=5513
+http://forum.odroid.com/viewtopic.php?f=79&t=5513<br>
 https://doukki.net/doku.php?id=hard:arm:odroid:odroid-u3-debian
 
 History
