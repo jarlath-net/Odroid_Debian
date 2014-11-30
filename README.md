@@ -7,12 +7,14 @@ Create microSD debian bootable card for ODROID.
 Tested on debian x86  with microSD card or eMMC with microSD adapter
 
 
-
-
 Supported devices:
 * ODROID-U3
 
 
+
+Based on:
+http://forum.odroid.com/viewtopic.php?f=79&t=5513
+https://doukki.net/doku.php?id=hard:arm:odroid:odroid-u3-debian
 
 History
 
