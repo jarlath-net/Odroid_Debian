@@ -34,6 +34,9 @@ https://doukki.net/doku.php?id=hard:arm:odroid:odroid-u3-debian
 
 History
 -------
+20141206
+* Some improvements. Not tested, but no changes in main routine are made. For testes working version goto v0.1
+
 v0.1:
 * Added UUID for second partition
 
