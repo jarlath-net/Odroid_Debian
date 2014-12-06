@@ -1,58 +1,37 @@
 #!/bin/bash
-
 # ODROID_DEBIAN.sh
 
 
-
-#-----------------------------------------------
-# CONFIG
-#-----------------------------------------------
-
-#microSD or eMMC target device
-export SDCARD=/dev/sdX
-
-#Working dir (temporary files)
-export WORKDIR=/home/user/ODROID/
-#Mount point
-export TARGET=/mnt/target/
-#MAC address for ODROID
-export MACADDR=72:e9:11:22:33:44
-#Hostname
-export TARGETNAME=ODROID
-export ARCH=armhf
-export DISTRIB=wheezy
-#ROOT password for ODROID
-export ROOTPASS=rootpass
-
-
-
-#-----------------------------------------------
-# CONFIG END
-#-----------------------------------------------
+MACADDR=72:e9:11:22:33:44
 
 
 
 
 
-
+TEMP_LOG="/tmp/odroid.build"
+WORKDIR=/tmp/ODROID/
+TARGET=/mnt/target/
+ARCH=armhf
+DISTRIB=wheezy
 
 #Create partitions on card
 function CreatePartitions()
 {
-
-    sudo clear
-    echo "	[*] Clear install: Preparing $SDCARD ..."
+    echo "      [*] Clear install: Preparing $SDCARD ..."
     echo "wipe card first sectors ..."
-    sudo dd if=/dev/zero of=$SDCARD bs=4M count=1
-    sync
-    rm -Rf boot boot.tar.gz
+    sudo partprobe  >> $TEMP_LOG
+    sudo dd if=/dev/zero of=$SDCARD bs=4M count=1 >> $TEMP_LOG 2>&1
+    sync >> $TEMP_LOG 2>&1
+    rm -Rf boot boot.tar.gz >> $TEMP_LOG 2>&1
     echo "Fuse card ..."
     wget http://odroid.in/guides/ubuntu-lfs/boot.tar.gz
-    tar zxvf boot.tar.gz
+    tar zxvf boot.tar.gz >> $TEMP_LOG 2>&1
     cd boot
-    chmod +x sd_fusing.sh
-    sudo ./sd_fusing.sh $SDCARD
+    echo "      [*] Fusing media"
+    chmod +x sd_fusing.sh  >> $TEMP_LOG 2>&1
+    sudo ./sd_fusing.sh $SDCARD  >> $TEMP_LOG 2>&1
     cd $WORKDIR
+    echo "      [*] Create partition schema"
 
     echo "
     n
@@ -69,33 +48,36 @@ function CreatePartitions()
     1
     c
     p
-    w" | sudo fdisk $SDCARD
+    w" | sudo fdisk $SDCARD  >> $TEMP_LOG 2>&1
 
 
 
-    sudo partprobe
+    sudo partprobe  >> $TEMP_LOG 2>&1
+    echo "      [*] Format partition and set attributes"
 
-    sudo mkfs.vfat -n BOOT $SDCARD"1"
-    sudo mkfs.ext4 -L ROOTFS $SDCARD"2"
-    sudo tune2fs -o journal_data_writeback $SDCARD"2"
-    sudo tune2fs -O ^has_journal $SDCARD"2"
+    sudo mkfs.vfat -n BOOT $SDCARD"1" >> $TEMP_LOG 2>&1
+    sudo mkfs.ext4 -L ROOTFS $SDCARD"2" >> $TEMP_LOG 2>&1
+    sudo tune2fs -o journal_data_writeback $SDCARD"2" >> $TEMP_LOG 2>&1
+    sudo tune2fs -O ^has_journal $SDCARD"2" >> $TEMP_LOG 2>&1
     #set parition uuid for some kernel update scripts
-    sudo tune2fs $SDCARD"2" -U e139ce78-9841-40fe-8823-96a304a09859
-    sudo e2fsck -f $SDCARD"2"
-    sudo dosfslabel $SDCARD"1" BOOT
-    sudo e2label $SDCARD"2" ROOTFS
-    sudo dumpe2fs $SDCARD"2" | head
+    sudo tune2fs $SDCARD"2" -U e139ce78-9841-40fe-8823-96a304a09859 >> $TEMP_LOG 2>&1
+    sudo e2fsck -f $SDCARD"2" >> $TEMP_LOG 2>&1
+    sudo dosfslabel $SDCARD"1" BOOT >> $TEMP_LOG 2>&1
+    sudo e2label $SDCARD"2" ROOTFS >> $TEMP_LOG 2>&1
+    sudo dumpe2fs $SDCARD"2" | head >> $TEMP_LOG 2>&1
+    echo "      [*] CARD prepared"
 
 }
 
 
 function BootstrapDebian()
 {
-    sudo mkdir -p -v $TARGET
-    sudo mount -v -t ext4 $SDCARD"2" $TARGET
-    sudo qemu-debootstrap --foreign --arch=$ARCH $DISTRIB $TARGET http://http.debian.net/debian
-    sudo sh -c "echo 'T0:23:respawn:/sbin/getty -L ttySAC1 115200 vt100'>> $TARGET'etc/inittab'"
-    sudo sh -c "echo 'ttySAC1'>> $TARGET'etc/securetty'"
+    sudo mkdir -p -v $TARGET >> $TEMP_LOG 2>&1
+    sudo mount -v -t ext4 $SDCARD"2" $TARGET >> $TEMP_LOG 2>&1
+    echo "      [*] Bootstraping - this could take a while ..."
+    sudo qemu-debootstrap --foreign --arch=$ARCH $DISTRIB $TARGET http://http.debian.net/debian >> $TEMP_LOG 2>&1
+    sudo sh -c "echo 'T0:23:respawn:/sbin/getty -L ttySAC1 115200 vt100'>> $TARGET'etc/inittab'" >> $TEMP_LOG 2>&1
+    sudo sh -c "echo 'ttySAC1'>> $TARGET'etc/securetty'" >> $TEMP_LOG 2>&1
 
 
     cat <<__EOF__ | sudo tee $TARGET'etc/apt/sources.list'
@@ -154,19 +136,21 @@ __EOF__
     sudo sh -c "echo 'exit 101'> $TARGET'usr/sbin/policy-rc.d'"
     sudo chmod -v +X $TARGET'usr/sbin/policy-rc.d'
     # Set root password
-    sudo chroot $TARGET sh -c "echo $ROOTPASS'\n'$ROOTPASS | passwd root"
+    clear
+    echo "Set password for ROOT:"
+    sudo chroot $TARGET sh -c "passwd root"
 
     sudo wget -O $TARGET'usr/local/bin/odroid-utility.sh' https://raw.githubusercontent.com/mdrjr/odroid-utility/master/odroid-utility.sh
-    sudo chmod +x $TARGET'usr/local/bin/odroid-utility.sh'
+    sudo chmod +x $TARGET'usr/local/bin/odroid-utility.sh' >> $TEMP_LOG 2>&1
 
     sudo mount -v -o bind /dev $TARGET'dev'
     sudo mount -v -o bind /dev/pts $TARGET'dev/pts'
     sudo mount -v -o bind /sys $TARGET'sys'
     sudo mount -v -t proc proc $TARGET'proc'
 
-    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get update
+    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get update >> $TEMP_LOG 2>&1
 
-    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get install -y lsb-release initramfs-tools tzdata locales uboot-mkimage ntp sudo openssh-server curl bash-completion
+    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get install -y lsb-release initramfs-tools tzdata locales uboot-mkimage ntp sudo openssh-server curl bash-completion >> $TEMP_LOG 2>&1
 
     sudo cp $TARGET'etc/initram-fs/initramfs.conf.dpkg-new' $TARGET'etc/initram-fs/initramfs.conf'
     sudo cp $TARGET'etc/initram-fs/update-initramfs.conf.dpkg-new' $TARGET'etc/initram-fs/update-initramfs.conf'
@@ -176,7 +160,7 @@ __EOF__
 
 function PutKernelAndFirmware_U3()
 {
-    echo "	[*] Install kernel and modules ..."
+    echo "      [*] Install kernel and modules ..."
     sudo mount -v -t vfat $SDCARD"1" $TARGET'boot'
 cat <<__EOF__ | sudo tee $TARGET'boot/boot.script'
 setenv initrd_high "0xffffffff"
@@ -191,10 +175,10 @@ __EOF__
     sudo wget http://builder.mdrjr.net/tools/firmware.tar.xz -O $TARGET'root/firmware.tar.xz'
 
     LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET xz -d /root/odroidu2.tar.xz
-    LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET tar xfv /root/odroidu2.tar > /dev/null
+    LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET tar xfv /root/odroidu2.tar >> $TEMP_LOG 2>&1
 
     LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET xz -d /root/firmware.tar.xz
-    LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET tar xfv /root/firmware.tar -C /lib/firmware/ > /dev/null
+    LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET tar xfv /root/firmware.tar -C /lib/firmware/ >> $TEMP_LOG 2>&1
 
 
 
@@ -233,6 +217,8 @@ function Finish()
 
     sudo rm $TARGET'usr/sbin/policy-rc.d'
 
+    sudo mv $TEMP_LOG $TARGET"root/odroid.build"
+
     sudo umount -v $TARGET
     sync
     sudo eject $SDCARD
@@ -247,27 +233,71 @@ function Finish()
 # Clear install: erase card and install from scratch
 function ClearInstall()
 {
-    mkdir -v -p $WORKDIR
-    cd $WORKDIR
+    mkdir -v -p $WORKDIR >> $TEMP_LOG
+    cd $WORKDIR >> $TEMP_LOG
     CreatePartitions
     BootstrapDebian
     PutKernelAndFirmware_U3
     Finish
 }
 
+function initialize()
+{
+
+    echo "*** Debian for ODROID build ***" > $TEMP_LOG
+
+    sudo apt-get install qemu-user-static debootstrap u-boot-tools dosfstools parted >> $TEMP_LOG
+
+    TARGET_DEV=$(whiptail --backtitle "Debian for ODROID build script" --title "Select ODROID device" --menu "Choose an target ODROID device type" 15 40 5 \
+    "ODROID-U3" "Target device: ODROID-U3." 3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 1 ]; then
+        exit 0
+    fi
+
+    echo "*** Selected target device: "$TARGET_DEV >> $TEMP_LOG
+
+    export REMOVABLE_DEV=($(
+        grep -Hv ^0$ /sys/block/*/removable |
+        sed s/removable:.*$/device\\/uevent/ |
+        xargs grep -H ^DRIVER=sd |
+        sed s/device.uevent.*$/size/ |
+        xargs grep -Hv ^0$ |
+        cut -d / -f 4
+    ))
+
+    TARGET_MEDIA=$(for dev in ${REMOVABLE_DEV[@]} ;do
+        echo $dev size:_$(
+            sed -e s/\ *$//g </sys/block/$dev/size
+        ) ;
+    done)
+
+    if [ -z "$TARGET_MEDIA" ]; then
+        echo "No removable device found. exit."
+        exit
+    fi
+
+    TARGET_MEDIA_DEV=$(whiptail --backtitle "Debian for ODROID build script" --title "Select media device" --menu "Choose an microSD or eMMC" 15 40 5 \
+    $TARGET_MEDIA 3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 1 ]; then
+        exit 0
+    fi
 
 
+    export SDCARD="/dev/"$TARGET_MEDIA_DEV
 
-sudo apt-get install qemu-user-static debootstrap u-boot-tools dosfstools parted
+    TARGETNAME=$(whiptail --title "Config hostname" --inputbox "Target device hostname" 10 60 ODROID 3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 1 ]; then
+        exit 0
+    fi
 
-echo "ODROID U3 Debian build script"
-echo "Script are given as-is without warrantly"
-echo "All data on $SDCARD will be erased when go next step"
-while true; do
-    read -p "Do you wish to install Debian for Odroid-U3 on $SDCARD [y/n]  " yn
-    case $yn in
-        [Yy]* ) ClearInstall; break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+    if (whiptail --backtitle "Debian for ODROID build script" --title "READ THIS !!!" --defaultno --yesno "ODROID U3 Debian build script. This tool are given as-is without warranty.\nAll data on $SDCARD will be erased. Do you want to proceed" 8 78) then
+        ClearInstall
+    else
+        exit
+    fi
+}
+
+initialize
