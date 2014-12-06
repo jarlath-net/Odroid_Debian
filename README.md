@@ -36,6 +36,10 @@ History
 -------
 20141206
 * Some improvements. Not tested, but no changes in main routine are made. For testes working version goto v0.1
+TODO
+* Less info visible on console
+* More echos
+* passwd procedure (loop if user make mistake)
 
 v0.1:
 * Added UUID for second partition
