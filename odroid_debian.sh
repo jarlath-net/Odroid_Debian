@@ -133,7 +133,7 @@ __EOF__
 
     DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get update >> $TEMP_LOG 2>&1
 
-    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get install -y lsb-release initramfs-tools tzdata locales uboot-mkimage ntp sudo openssh-server curl bash-completion >> $TEMP_LOG 2>&1
+    DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true LC_ALL=C LANGUAGE=C LANG=C sudo chroot $TARGET apt-get install -y lsb-release initramfs-tools tzdata locales u-boot-tools xz-utils ntp sudo openssh-server curl bash-completion >> $TEMP_LOG 2>&1
 
     sudo cp $TARGET'etc/initram-fs/initramfs.conf.dpkg-new' $TARGET'etc/initram-fs/initramfs.conf'
     sudo cp $TARGET'etc/initram-fs/update-initramfs.conf.dpkg-new' $TARGET'etc/initram-fs/update-initramfs.conf'
