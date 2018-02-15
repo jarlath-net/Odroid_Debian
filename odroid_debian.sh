@@ -12,7 +12,7 @@ TEMP_LOG="/tmp/odroid.build"
 WORKDIR=/tmp/ODROID/
 TARGET=/mnt/target/
 ARCH=armhf
-DISTRIB=wheezy
+DISTRIB=stretch
 
 #Create partitions on card
 function CreatePartitions()
@@ -64,17 +64,16 @@ function BootstrapDebian()
 
 
     cat <<__EOF__ | sudo tee $TARGET'etc/apt/sources.list'
-# deb http://ftp.pl.debian.org/debian/ wheezy main
+# deb http://ftp.pl.debian.org/debian/ stretch main
 
-deb http://ftp.pl.debian.org/debian/ wheezy main contrib non-free
-deb-src http://ftp.pl.debian.org/debian/ wheezy main contrib non-free
+deb http://ftp.pl.debian.org/debian/ stretch main contrib non-free
+deb-src http://ftp.pl.debian.org/debian/ stretch main contrib non-free
 
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://security.debian.org/ stretch/updates main contrib non-free
+deb-src http://security.debian.org/ stretch/updates main contrib non-free
 
-# wheezy-updates, previously known as 'volatile'
-deb http://ftp.pl.debian.org/debian/ wheezy-updates main contrib non-free
-deb-src http://ftp.pl.debian.org/debian/ wheezy-updates main contrib non-free
+deb http://ftp.pl.debian.org/debian/ stretch-updates main contrib non-free
+deb-src http://ftp.pl.debian.org/debian/ stretch-updates main contrib non-free
 __EOF__
 
 
