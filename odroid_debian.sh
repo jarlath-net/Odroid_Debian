@@ -33,24 +33,7 @@ function CreatePartitions()
     cd $WORKDIR
     echo "      [*] Create partition schema"
 
-    echo "
-    n
-    p
-    1
-    3072
-    +64M
-    n
-    p
-    2
-    134144
-
-    t
-    1
-    c
-    p
-    w" | sudo fdisk $SDCARD  >> $TEMP_LOG 2>&1
-
-
+    echo -e "o\nn\np\n1\n3072\n+64M\nn\np\n2\n135168\n\nt\n1\nc\np\nw\n" | sudo fdisk $SDCARD
 
     sudo partprobe  >> $TEMP_LOG 2>&1
     echo "      [*] Format partition and set attributes"
